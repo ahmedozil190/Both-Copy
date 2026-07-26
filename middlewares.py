@@ -131,7 +131,9 @@ class UnifiedMiddleware(BaseMiddleware):
                 if current_mode == "store" and user.is_banned_store:
                     markup = None
                     lbl = "🚫 Your account has been suspended."
-                    supp_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "SUPPORT_USERNAME"))).scalar_one_or_none()
+                    supp_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "store_support_username"))).scalar_one_or_none()
+                    if not supp_obj:
+                        supp_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "SUPPORT_USERNAME"))).scalar_one_or_none()
                     if supp_obj and supp_obj.value:
                         markup = InlineKeyboardMarkup(inline_keyboard=[
                             [InlineKeyboardButton(text="Contact Support 🎧", url=f"https://t.me/{supp_obj.value.strip()}")]
@@ -145,7 +147,9 @@ class UnifiedMiddleware(BaseMiddleware):
                 if current_mode == "seller" and user.is_banned_sourcing:
                     markup = None
                     lbl = "🚫 Your seller account has been suspended."
-                    supp_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "SUPPORT_USERNAME"))).scalar_one_or_none()
+                    supp_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "sourcing_support_username"))).scalar_one_or_none()
+                    if not supp_obj:
+                        supp_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "SUPPORT_USERNAME"))).scalar_one_or_none()
                     if supp_obj and supp_obj.value:
                         markup = InlineKeyboardMarkup(inline_keyboard=[
                             [InlineKeyboardButton(text="Contact Support 🎧", url=f"https://t.me/{supp_obj.value.strip()}")]
@@ -161,7 +165,10 @@ class UnifiedMiddleware(BaseMiddleware):
                     m_key = "STORE_UNDER_MAINTENANCE" if current_mode == "store" else "SOURCING_UNDER_MAINTENANCE"
                     m_setting = (await session.execute(select(AppSetting).where(AppSetting.key == m_key))).scalar_one_or_none()
                     if m_setting and str(m_setting.value).lower() == "true":
-                        ch_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "UPDATES_CHANNEL"))).scalar_one_or_none()
+                        ch_key = "store_updates_channel" if current_mode == "store" else "sourcing_updates_channel"
+                        ch_obj = (await session.execute(select(AppSetting).where(AppSetting.key == ch_key))).scalar_one_or_none()
+                        if not ch_obj:
+                            ch_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "UPDATES_CHANNEL"))).scalar_one_or_none()
                         ch_link = ch_obj.value if ch_obj else None
                         markup = None
                         if ch_link:

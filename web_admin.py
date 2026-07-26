@@ -1015,14 +1015,21 @@ async def get_store_data(user_id: int = None, init_data: str = None):
             
             from config import ADMIN_IDS
             # Support & Channel settings
-            support_username = (await session.execute(select(AppSetting).where(AppSetting.key == "SUPPORT_USERNAME"))).scalar_one_or_none()
-            updates_channel = (await session.execute(select(AppSetting).where(AppSetting.key == "UPDATES_CHANNEL"))).scalar_one_or_none()
+            support_username_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "store_support_username"))).scalar_one_or_none()
+            if not support_username_obj:
+                support_username_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "SUPPORT_USERNAME"))).scalar_one_or_none()
+            support_username = support_username_obj.value if support_username_obj else ""
+
+            updates_channel_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "store_updates_channel"))).scalar_one_or_none()
+            if not updates_channel_obj:
+                updates_channel_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "UPDATES_CHANNEL"))).scalar_one_or_none()
+            updates_channel = updates_channel_obj.value if updates_channel_obj else ""
 
             if maintenance_mode and user_id not in ADMIN_IDS:
                 return {
                     "maintenance_store": True,
-                    "support_username": support_username.value if support_username else "",
-                    "updates_channel": updates_channel.value if updates_channel else ""
+                    "support_username": support_username,
+                    "updates_channel": updates_channel
                 }
 
             if user_id:
@@ -1030,8 +1037,8 @@ async def get_store_data(user_id: int = None, init_data: str = None):
                 if user and user.is_banned_store and user_id not in ADMIN_IDS:
                     return {
                         "is_banned": True,
-                        "support_username": support_username.value if support_username else "",
-                        "updates_channel": updates_channel.value if updates_channel else ""
+                        "support_username": support_username,
+                        "updates_channel": updates_channel
                     }
 
             # 0. Global Settings
@@ -1365,8 +1372,8 @@ async def get_store_data(user_id: int = None, init_data: str = None):
                 "trx_trc20": final_trx,
                 "usdt_bep20": final_usdt_bep20
             },
-            "support_username": support_username.value if support_username else "",
-            "updates_channel": updates_channel.value if updates_channel else ""
+            "support_username": support_username,
+            "updates_channel": updates_channel
         }
     except Exception as e:
         logger.error(f"Store Data Error: {e}")
@@ -2058,12 +2065,25 @@ async def get_sourcing_settings(user_id: int, init_data: str):
                 "sourcing_log_channel_id", "sourcing_join_log_channel_id",
                 "min_withdraw_trx", "min_withdraw_usdt",
                 "fee_withdraw_trx", "fee_withdraw_usdt",
-                "sourcing_extra_admin_ids", "SUPPORT_USERNAME", "UPDATES_CHANNEL"
+                "sourcing_extra_admin_ids", "sourcing_support_username", "sourcing_updates_channel"
             ]
             settings = {}
             for k in keys:
                 obj = (await session.execute(select(AppSetting).where(AppSetting.key == k))).scalar_one_or_none()
                 settings[k] = obj.value if obj else ""
+
+            # Sourcing Support Username Fallback
+            support_username = settings.get("sourcing_support_username", "")
+            if not support_username:
+                sup_old = (await session.execute(select(AppSetting).where(AppSetting.key == "SUPPORT_USERNAME"))).scalar_one_or_none()
+                support_username = sup_old.value if sup_old else ""
+
+            # Sourcing Updates Channel Fallback
+            updates_channel = settings.get("sourcing_updates_channel", "")
+            if not updates_channel:
+                upd_old = (await session.execute(select(AppSetting).where(AppSetting.key == "UPDATES_CHANNEL"))).scalar_one_or_none()
+                updates_channel = upd_old.value if upd_old else ""
+
             return {
                 "sourcing_log_channel_id": settings.get("sourcing_log_channel_id", ""),
                 "sourcing_join_log_channel_id": settings.get("sourcing_join_log_channel_id", ""),
@@ -2072,8 +2092,8 @@ async def get_sourcing_settings(user_id: int, init_data: str):
                 "fee_withdraw_trx": settings.get("fee_withdraw_trx", "0.2"),
                 "fee_withdraw_usdt": settings.get("fee_withdraw_usdt", "0.2"),
                 "extra_admin_ids": settings.get("sourcing_extra_admin_ids", ""),
-                "support_username": settings.get("SUPPORT_USERNAME", ""),
-                "updates_channel": settings.get("UPDATES_CHANNEL", "")
+                "support_username": support_username,
+                "updates_channel": updates_channel
             }
     except Exception as e:
         logger.error(f"Get Sourcing Settings Error: {e}")
@@ -2236,9 +2256,14 @@ async def get_sourcing_data(user_id: int, init_data: str):
             sourcing_extra_admin_ids = settings_dict.get("sourcing_extra_admin_ids", "")
 
             # Support & Channel settings
-            support_username_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "SUPPORT_USERNAME"))).scalar_one_or_none()
-            updates_channel_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "UPDATES_CHANNEL"))).scalar_one_or_none()
+            support_username_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "sourcing_support_username"))).scalar_one_or_none()
+            if not support_username_obj:
+                support_username_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "SUPPORT_USERNAME"))).scalar_one_or_none()
             support_username = support_username_obj.value if support_username_obj else ""
+
+            updates_channel_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "sourcing_updates_channel"))).scalar_one_or_none()
+            if not updates_channel_obj:
+                updates_channel_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "UPDATES_CHANNEL"))).scalar_one_or_none()
             updates_channel = updates_channel_obj.value if updates_channel_obj else ""
 
             return {
@@ -2277,8 +2302,8 @@ async def get_sourcing_data(user_id: int, init_data: str):
                 "recent": recent,
                 "prices": prices,
                 "users": users_list,
-                "support_username": (await session.execute(select(AppSetting).where(AppSetting.key == "SUPPORT_USERNAME"))).scalar_one_or_none().value if (await session.execute(select(AppSetting).where(AppSetting.key == "SUPPORT_USERNAME"))).scalar_one_or_none() else "",
-                "updates_channel": (await session.execute(select(AppSetting).where(AppSetting.key == "UPDATES_CHANNEL"))).scalar_one_or_none().value if (await session.execute(select(AppSetting).where(AppSetting.key == "UPDATES_CHANNEL"))).scalar_one_or_none() else ""
+                "support_username": support_username,
+                "updates_channel": updates_channel
             }
     except Exception as e:
         logger.error(f"Sourcing Data Error: {e}")
@@ -2305,9 +2330,14 @@ async def get_admin_store_data(user_id: int, init_data: str):
                 purchase_log_channel_id = log_ch_obj.value if log_ch_obj else ""
 
                 # Support & Channel settings
-                support_username_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "SUPPORT_USERNAME"))).scalar_one_or_none()
-                updates_channel_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "UPDATES_CHANNEL"))).scalar_one_or_none()
+                support_username_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "store_support_username"))).scalar_one_or_none()
+                if not support_username_obj:
+                    support_username_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "SUPPORT_USERNAME"))).scalar_one_or_none()
                 support_username = support_username_obj.value if support_username_obj else ""
+
+                updates_channel_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "store_updates_channel"))).scalar_one_or_none()
+                if not updates_channel_obj:
+                    updates_channel_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "UPDATES_CHANNEL"))).scalar_one_or_none()
                 updates_channel = updates_channel_obj.value if updates_channel_obj else ""
                 
                 dep_log_ch_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "deposit_log_channel_id"))).scalar_one_or_none()
@@ -2661,8 +2691,14 @@ async def get_store_settings(user_id: int, init_data: str):
             extra_admins_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "extra_admin_ids"))).scalar_one_or_none()
             extra_admin_ids = extra_admins_obj.value if extra_admins_obj else ""
 
-            support_username_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "SUPPORT_USERNAME"))).scalar_one_or_none()
-            updates_channel_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "UPDATES_CHANNEL"))).scalar_one_or_none()
+            store_sup_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "store_support_username"))).scalar_one_or_none()
+            if not store_sup_obj:
+                store_sup_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "SUPPORT_USERNAME"))).scalar_one_or_none()
+            
+            store_upd_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "store_updates_channel"))).scalar_one_or_none()
+            if not store_upd_obj:
+                store_upd_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "UPDATES_CHANNEL"))).scalar_one_or_none()
+
             log_ch_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "purchase_log_channel_id"))).scalar_one_or_none()
             dep_log_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "deposit_log_channel_id"))).scalar_one_or_none()
             join_log_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "store_join_log_channel_id"))).scalar_one_or_none()
@@ -2676,8 +2712,8 @@ async def get_store_settings(user_id: int, init_data: str):
                 "referral_join_bonus": settings.get("referral_join_bonus") or "0.005",
                 "referral_commission_percent": settings.get("referral_commission_percent") or "1",
                 "extra_admin_ids": extra_admin_ids,
-                "support_username": support_username_obj.value if support_username_obj else "",
-                "updates_channel": updates_channel_obj.value if updates_channel_obj else "",
+                "support_username": store_sup_obj.value if store_sup_obj else "",
+                "updates_channel": store_upd_obj.value if store_upd_obj else "",
                 "purchase_log_channel_id": log_ch_obj.value if log_ch_obj else "",
                 "deposit_log_channel_id": dep_log_obj.value if dep_log_obj else "",
                 "store_join_log_channel_id": join_log_obj.value if join_log_obj else ""
@@ -2747,8 +2783,11 @@ async def save_support_settings(data: dict):
     try:
         async with async_session() as session:
             allowed_keys = [
-                "SUPPORT_USERNAME", "UPDATES_CHANNEL", "PURCHASE_LOG_CHANNEL_ID",
-                "SOURCING_LOG_CHANNEL_ID", "purchase_log_channel_id", "sourcing_log_channel_id",
+                "SUPPORT_USERNAME", "UPDATES_CHANNEL",
+                "store_support_username", "store_updates_channel",
+                "sourcing_support_username", "sourcing_updates_channel",
+                "PURCHASE_LOG_CHANNEL_ID", "SOURCING_LOG_CHANNEL_ID",
+                "purchase_log_channel_id", "sourcing_log_channel_id",
                 "deposit_log_channel_id", "store_join_log_channel_id", "sourcing_join_log_channel_id",
                 "extra_admin_ids", "sourcing_extra_admin_ids"
             ]
@@ -3486,15 +3525,23 @@ async def get_seller_data(user_id: int, init_data: str, lang: str = "en"):
             
             from config import SOURCING_ADMIN_IDS
             # Support & Channel settings
-            support_username = (await session.execute(select(AppSetting).where(AppSetting.key == "SUPPORT_USERNAME"))).scalar_one_or_none()
-            updates_channel = (await session.execute(select(AppSetting).where(AppSetting.key == "UPDATES_CHANNEL"))).scalar_one_or_none()
+            support_username_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "sourcing_support_username"))).scalar_one_or_none()
+            if not support_username_obj:
+                support_username_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "SUPPORT_USERNAME"))).scalar_one_or_none()
+            support_username = support_username_obj.value if support_username_obj else ""
+
+            updates_channel_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "sourcing_updates_channel"))).scalar_one_or_none()
+            if not updates_channel_obj:
+                updates_channel_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "UPDATES_CHANNEL"))).scalar_one_or_none()
+            updates_channel = updates_channel_obj.value if updates_channel_obj else ""
+            
             extra_admin_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "sourcing_extra_admin_ids"))).scalar_one_or_none()
 
             if maintenance_mode and user_id not in SOURCING_ADMIN_IDS:
                 return {
                     "maintenance_sourcing": True,
-                    "support_username": support_username.value if support_username else "",
-                    "updates_channel": updates_channel.value if updates_channel else ""
+                    "support_username": support_username,
+                    "updates_channel": updates_channel
                 }
 
             if user_id:
@@ -3502,8 +3549,8 @@ async def get_seller_data(user_id: int, init_data: str, lang: str = "en"):
                 if user and user.is_banned_sourcing and user_id not in SOURCING_ADMIN_IDS:
                     return {
                         "is_banned": True,
-                        "support_username": support_username.value if support_username else "",
-                        "updates_channel": updates_channel.value if updates_channel else ""
+                        "support_username": support_username,
+                        "updates_channel": updates_channel
                     }
 
             user = await session.get(User, user_id)
@@ -3657,8 +3704,8 @@ async def get_seller_data(user_id: int, init_data: str, lang: str = "en"):
                     "fee_withdraw_trx": float((await session.execute(select(AppSetting).where(AppSetting.key == "fee_withdraw_trx"))).scalar_one_or_none().value or 0.2) if (await session.execute(select(AppSetting).where(AppSetting.key == "fee_withdraw_trx"))).scalar_one_or_none() else 0.2,
                     "fee_withdraw_usdt": float((await session.execute(select(AppSetting).where(AppSetting.key == "fee_withdraw_usdt"))).scalar_one_or_none().value or 0.2) if (await session.execute(select(AppSetting).where(AppSetting.key == "fee_withdraw_usdt"))).scalar_one_or_none() else 0.2
                 },
-                "support_username": support_username.value if support_username else "",
-                "updates_channel": updates_channel.value if updates_channel else "",
+                "support_username": support_username,
+                "updates_channel": updates_channel,
                 "extra_admin_ids": extra_admin_obj.value if extra_admin_obj else ""
             }
     except Exception as e:

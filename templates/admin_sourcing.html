@@ -2005,9 +2005,14 @@
 
     <!-- Sidebar Drawer -->
     <div class="sidebar" id="navSidebar">
-        <div class="side-brand">
-            <div class="side-brand-dot"></div>
-            <span class="side-brand-name" id="sideBrandName">Sourcing Panel</span>
+        <div class="side-brand" style="justify-content: space-between; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="side-brand-dot"></div>
+                <span class="side-brand-name">SELLER ADMIN</span>
+            </div>
+            <button onclick="window.location.href='/admin/store'" title="Switch Admin Panel" style="background: rgba(88, 101, 242, 0.12); border: 1px solid var(--accent); color: var(--accent); width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;">
+                <i class="fas fa-arrows-rotate" style="font-size: 0.9rem;"></i>
+            </button>
         </div>
 
         <div class="side-nav">

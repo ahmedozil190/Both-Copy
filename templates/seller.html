@@ -1534,7 +1534,7 @@
             <i class="fas fa-bars"></i>
         </button>
         <div class="page-title" id="viewTitle">Dashboard</div>
-        <div class="user-avatar" id="userInitial"></div>
+        <div class="user-avatar" id="userInitial"><i class="fas fa-user-circle"></i></div>
     </div>
 
     <!-- Sidebar Drawer -->
@@ -2506,7 +2506,7 @@
         const userId = tg.initDataUnsafe?.user?.id || 0;
         const userFirstName = tg.initDataUnsafe?.user?.first_name || "User";
         const userLang = tg.initDataUnsafe?.user?.language_code || 'en';
-        safeSetText('userInitial', userFirstName.charAt(0).toUpperCase());
+        // safeSetText('userInitial', userFirstName.charAt(0).toUpperCase());
 
         const rawTranslations = {
             en: {

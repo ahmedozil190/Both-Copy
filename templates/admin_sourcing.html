@@ -2000,7 +2000,7 @@
             <i class="fas fa-bars"></i>
         </button>
         <div class="page-title" id="page-title" data-i18n="nav_dashboard">Dashboard</div>
-        <div class="user-avatar" id="userInitial"></div>
+        <div class="user-avatar" id="userInitial"><i class="fas fa-user-shield"></i></div>
     </div>
 
     <!-- Sidebar Drawer -->
@@ -4071,8 +4071,8 @@
                     if (bnInput) bnInput.value = data.bot_name;
                 }
                 const uname = tg.initDataUnsafe?.user?.first_name || "AD";
-                const uIEl = document.getElementById('userInitial');
-                if (uIEl) uIEl.textContent = uname.charAt(0).toUpperCase();
+                // const uIEl = document.getElementById('userInitial');
+                // if (uIEl) uIEl.textContent = uname.charAt(0).toUpperCase();
 
                 // History Section Stats
                 const hpEl = document.getElementById('stat-history-pending');

@@ -213,7 +213,7 @@ async def main():
     # 6. Set Bot Commands (Side Menu)
     from aiogram.types import BotCommand, BotCommandScopeAllPrivateChats
     try:
-        commands = [BotCommand(command="start", description="Start")]
+        commands = [BotCommand(command="start", description="• Start")]
         await bot.set_my_commands(commands)
         await bot.set_my_commands(commands, scope=BotCommandScopeAllPrivateChats())
         logger.info("Bot commands set globally & for private chats successfully.")

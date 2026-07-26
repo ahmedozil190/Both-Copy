@@ -1003,9 +1003,9 @@ async def store_page(request: Request):
 @app.get("/api/store/data")
 async def get_store_data(user_id: int = None, init_data: str = None):
     try:
+        # Auth: verify using unified multi-token check (admins always pass)
         if user_id and init_data:
-            from config import BOT_TOKEN
-            if not verify_telegram_auth(init_data, BOT_TOKEN, user_id):
+            if not verify_user_auth_multi(init_data, user_id):
                 raise HTTPException(status_code=401, detail="Unauthorized identity")
         
         async with async_session() as session:
@@ -1378,8 +1378,7 @@ async def store_buy(data: StoreBuy):
     try:
         async with async_session() as session:
             # 1. AUTH VERIFICATION
-            from config import BOT_TOKEN
-            if not verify_telegram_auth(data.init_data, BOT_TOKEN, data.user_id):
+            if not verify_user_auth_multi(data.init_data, data.user_id):
                 raise HTTPException(status_code=401, detail="Unauthorized: Telegram identity verification failed.")
 
             # Secure User Fetch with Row Locking
@@ -1549,8 +1548,7 @@ async def store_buy(data: StoreBuy):
 async def store_get_code(user_id: int, phone: str, init_data: str):
     from services.session_manager import get_telegram_login_code
     try:
-        from config import BOT_TOKEN
-        if not verify_telegram_auth(init_data, BOT_TOKEN, user_id):
+        if not verify_user_auth_multi(init_data, user_id):
             raise HTTPException(status_code=401, detail="Unauthorized")
 
         async with async_session() as session:
@@ -1603,8 +1601,7 @@ async def store_get_code(user_id: int, phone: str, init_data: str):
 @app.get("/api/store/history")
 async def get_store_history(user_id: int, init_data: str, page: int = 1, limit: int = 10):
     try:
-        from config import BOT_TOKEN
-        if not verify_telegram_auth(init_data, BOT_TOKEN, user_id):
+        if not verify_user_auth_multi(init_data, user_id):
             return {"orders": [], "total_pages": 0, "current_page": 1, "total_count": 0}
 
         async with async_session() as session:
@@ -1651,8 +1648,7 @@ async def get_store_history(user_id: int, init_data: str, page: int = 1, limit: 
 @app.get("/api/store/deposits")
 async def get_deposit_history(user_id: int, init_data: str, page: int = 1, limit: int = 10):
     try:
-        from config import BOT_TOKEN
-        if not verify_telegram_auth(init_data, BOT_TOKEN, user_id):
+        if not verify_user_auth_multi(init_data, user_id):
             return {"deposits": [], "total_pages": 0, "current_page": 1, "total_count": 0}
 
         async with async_session() as session:
@@ -4775,7 +4771,8 @@ async def check_subscription(user_id: int, bot_type: str = "store"):
     if user_id in ADMIN_IDS:
         return {"ok": True}
         
-    token = BOT_TOKEN if bot_type == "store" else SELLER_BOT_TOKEN
+    # Use unified BOT_TOKEN for all bot types since we merged to one bot
+    token = BOT_TOKEN
     
     async with async_session() as session:
         result = await session.execute(select(SubscriptionChannel).where(SubscriptionChannel.bot_type == bot_type))

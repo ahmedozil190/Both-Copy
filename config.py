@@ -1,7 +1,10 @@
 import os
-from dotenv import load_dotenv
 
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 API_ID = os.getenv("API_ID", "0")

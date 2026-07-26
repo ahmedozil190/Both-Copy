@@ -16,7 +16,7 @@ async def update_user_menu_button(bot: Bot, user_id: int, mode: str):
     """Updates the Telegram Menu Button (web app url) based on mode."""
     try:
         url = STORE_URL if mode == "store" else f"{WEBAPP_URL}/seller?v=3"
-        btn_text = "Store 🛒" if mode == "store" else "Seller 🚀"
+        btn_text = "🛒 Store" if mode == "store" else "🚀 Seller"
         await bot.set_chat_menu_button(
             chat_id=user_id,
             menu_button=MenuButtonWebApp(text=btn_text, web_app=WebAppInfo(url=url))

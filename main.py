@@ -211,12 +211,12 @@ async def main():
     tasks = [web_task]
     
     # 6. Set Bot Commands (Side Menu)
-    from aiogram.types import BotCommand
+    from aiogram.types import BotCommand, BotCommandScopeAllPrivateChats
     try:
-        await bot.set_my_commands([
-            BotCommand(command="start", description="Start")
-        ])
-        logger.info("Bot commands set successfully.")
+        commands = [BotCommand(command="start", description="Start")]
+        await bot.set_my_commands(commands)
+        await bot.set_my_commands(commands, scope=BotCommandScopeAllPrivateChats())
+        logger.info("Bot commands set globally & for private chats successfully.")
     except Exception as e:
         logger.error(f"Failed to set bot commands: {e}")
 

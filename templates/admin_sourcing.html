@@ -3968,7 +3968,7 @@
             if (id === 'withdrawals') fetchAdminWithdrawals(1, 'pending');
             if (id === 'history') fetchAdminHistory(1);
             if (id === 'user-prices') renderUserPrices();
-            if (id.startsWith('settings')) fetchSourcingSettings();
+            if (id.startsWith('settings')) { fetchSourcingSettings(); loadMaintenanceMode().catch(console.error); }
 
             // 5. Reset scroll BEFORE showing the section
             const scroller = document.getElementById('app-content-scroller');
@@ -4168,7 +4168,7 @@
                 const loader = document.getElementById('loader');
                 if (loader) loader.style.display = 'none';
             }
-            loadMaintenanceMode();
+            await loadMaintenanceMode();
         }
 
         async function refreshDashboardStats() {
@@ -5187,7 +5187,9 @@
                 if (!res.ok) return;
                 const data = await res.json();
                 const srcToggle = document.getElementById('src-maintenance-toggle');
-                if (srcToggle) srcToggle.checked = data.sourcing_enabled === true;
+                if (srcToggle && typeof data.sourcing_enabled === 'boolean') {
+                    srcToggle.checked = data.sourcing_enabled === true;
+                }
             } catch (e) {
                 console.error('Error loading maintenance mode', e);
             }

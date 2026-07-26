@@ -3087,7 +3087,7 @@
             if (id === 'prices') renderPrices(allPrices);
             if (id === 'analytics') fetchAnalytics();
             if (id === 'home') renderSales(allTransactions);
-            if (id.startsWith('settings')) fetchStoreSettings();
+            if (id.startsWith('settings')) { fetchStoreSettings(); loadMaintenanceMode().catch(console.error); }
             if (id === 'settings-servers') fetchServers();
             if (id === 'store-user-prices') fetchStoreUserPrices();
             if (id === 'settings-subscriptions') fetchSubscriptionChannels();
@@ -3221,7 +3221,7 @@
                 // Non-blocking secondary fetches
                 fetchSubscriptionChannels().catch(console.error);
                 loadServers().catch(console.error);
-                loadMaintenanceMode().catch(console.error);
+                await loadMaintenanceMode();
 
                 // Restore active tab (Like user panel)
                 const savedView = sessionStorage.getItem('last_view_admin_store') || 'home';
@@ -3240,9 +3240,12 @@
         async function loadMaintenanceMode() {
             try {
                 const res = await fetch(`/api/admin/system/maintenance?user_id=${userId}&init_data=${encodeURIComponent(initData)}&_t=${Date.now()}`);
+                if (!res.ok) return;
                 const data = await res.json();
                 const toggle = document.getElementById('maintenance-toggle');
-                if (toggle) toggle.checked = data.store_enabled;
+                if (toggle && typeof data.store_enabled === 'boolean') {
+                    toggle.checked = data.store_enabled;
+                }
             } catch (e) { console.error('Error loading maintenance mode', e); }
         }
 

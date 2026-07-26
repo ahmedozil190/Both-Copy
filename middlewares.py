@@ -160,8 +160,12 @@ class UnifiedMiddleware(BaseMiddleware):
                         await event.answer("Seller Account Suspended 🚫", show_alert=True)
                     return
 
-                # 4. Maintenance Check
-                if not is_admin:
+                # 4. Maintenance Check — /start always bypasses maintenance
+                is_start_command = False
+                if isinstance(event, Message) and event.text and event.text.startswith('/start'):
+                    is_start_command = True
+
+                if not is_admin and not is_start_command:
                     m_key = "STORE_UNDER_MAINTENANCE" if current_mode == "store" else "SOURCING_UNDER_MAINTENANCE"
                     m_setting = (await session.execute(select(AppSetting).where(AppSetting.key == m_key))).scalar_one_or_none()
                     if m_setting and str(m_setting.value).lower() == "true":

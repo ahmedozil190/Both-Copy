@@ -2,8 +2,7 @@ import os
 from aiogram import Router, F
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from aiogram.filters import Command
-from database.engine import async_session
-from database.models import User, CountryPrice
+from database import async_session, User, CountryPrice
 from sqlalchemy.future import select
 
 router = Router()

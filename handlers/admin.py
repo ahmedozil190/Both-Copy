@@ -5,8 +5,7 @@ from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from database.engine import async_session
-from database.models import Account, AccountStatus, User, Transaction, TransactionType
+from database import async_session, Account, AccountStatus, User, Transaction, TransactionType
 from sqlalchemy.future import select
 from sqlalchemy import func
 from keyboards import admin_main_keyboard, admin_user_keyboard, admin_back_keyboard
@@ -139,7 +138,7 @@ async def process_add_balance(message: Message, state: FSMContext):
             if user.referred_by:
                 referrer = (await session.execute(select(User).where(User.id == user.referred_by))).scalar_one_or_none()
                 if referrer:
-                    from database.models import AppSetting
+                    from database import AppSetting
                     comm_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "referral_commission_percent"))).scalar_one_or_none()
                     comm_percent = float(comm_obj.value) if comm_obj and comm_obj.value else 1.0
                     
@@ -193,7 +192,7 @@ async def cmd_test_deposit(message: Message):
         if user.referred_by:
             referrer = (await session.execute(select(User).where(User.id == user.referred_by))).scalar_one_or_none()
             if referrer:
-                from database.models import AppSetting
+                from database import AppSetting
                 comm_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "referral_commission_percent"))).scalar_one_or_none()
                 comm_percent = float(comm_obj.value) if comm_obj and comm_obj.value else 1.0
                 

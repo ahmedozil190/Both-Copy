@@ -8,8 +8,7 @@ from typing import Dict
 
 from config import API_ID, API_HASH
 from services.i18n import get_text
-from database.engine import async_session
-from database.models import User
+from database import async_session, User
 
 # We store temporary clients here during the sign-in flow
 login_clients: Dict[int, Client] = {}

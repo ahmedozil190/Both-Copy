@@ -3,8 +3,7 @@ from typing import Any, Awaitable, Callable, Dict
 from aiogram import BaseMiddleware, Bot
 from aiogram.types import TelegramObject, Message, CallbackQuery, Update, InlineKeyboardMarkup, InlineKeyboardButton, User as TGUser
 from sqlalchemy import select, func
-from database.engine import async_session
-from database.models import User, AppSetting, SubscriptionChannel, Transaction, TransactionType
+from database import async_session, User, AppSetting, SubscriptionChannel, Transaction, TransactionType
 
 logger = logging.getLogger(__name__)
 

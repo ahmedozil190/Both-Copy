@@ -10,8 +10,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from sqlalchemy.future import select
 from sqlalchemy import select, delete, update, func, text, or_, cast, String
-from database.engine import async_session
-from database.models import User, Account, Transaction, AccountStatus, TransactionType, CountryPrice, WithdrawalRequest, WithdrawalStatus, UserCountryPrice, Deposit, AppSetting, UserStorePrice, ApiServer, SubscriptionChannel
+from database import async_session, engine, Base, User, Account, Transaction, AccountStatus, TransactionType, CountryPrice, WithdrawalRequest, WithdrawalStatus, UserCountryPrice, Deposit, AppSetting, UserStorePrice, ApiServer, SubscriptionChannel
 from urllib.parse import parse_qsl
 import re
 import pycountry
@@ -631,8 +630,8 @@ async def get_seller_panel(request: Request):
 @app.on_event("startup")
 async def run_migrations():
     """Auto-migrate SQLite DB to add any missing columns and create new tables."""
-    from database.engine import engine
-    from database.models import Base
+    from database import engine
+    from database import Base
     import sqlalchemy
     try:
         async with engine.begin() as conn:
@@ -875,7 +874,7 @@ async def run_migrations():
 
             # Load extra admin IDs from database into memory
             try:
-                from database.models import AppSetting
+                from database import AppSetting
                 from sqlalchemy import select
                 import config
                 import os
@@ -1491,7 +1490,7 @@ async def store_buy(data: StoreBuy):
             # 3. Handle Local Purchase Execution
             if is_local and account:
                 # Resolve Personalized Pricing
-                from database.models import UserStorePrice
+                from database import UserStorePrice
                 _, _, res_iso = resolve_country_info(data.country)
                 
                 async with async_session() as inner_session:
@@ -2490,7 +2489,7 @@ async def get_admin_store_sales(
                 })
             
             # --- Calculate Server Stats ---
-            from database.models import ApiServer
+            from database import ApiServer
             stats_list = []
             
             # External Servers Stats
@@ -2790,7 +2789,7 @@ async def get_store_deposits(user_id: int, init_data: str):
     from config import BOT_TOKEN, ADMIN_IDS
     if not verify_admin_auth_multi(init_data, user_id):
         raise HTTPException(status_code=403, detail="Unauthorized")
-    from database.models import Deposit, User
+    from database import Deposit, User
     async with async_session() as session:
         result = await session.execute(
             select(Deposit, User)
@@ -2817,7 +2816,7 @@ async def get_store_user_prices(user_id: int, init_data: str):
     from config import BOT_TOKEN, ADMIN_IDS
     if not verify_admin_auth_multi(init_data, user_id):
         raise HTTPException(status_code=403, detail="Unauthorized")
-    from database.models import UserStorePrice, User
+    from database import UserStorePrice, User
     async with async_session() as session:
         result = await session.execute(
             select(UserStorePrice, User)
@@ -2864,7 +2863,7 @@ async def add_store_user_price(data: UserStorePriceCreate):
     from config import BOT_TOKEN, ADMIN_IDS
     if not verify_admin_auth_multi(data.init_data, data.user_id):
         raise HTTPException(status_code=403, detail="Unauthorized")
-    from database.models import UserStorePrice, User
+    from database import UserStorePrice, User
     async with async_session() as session:
         user = await session.get(User, data.user_id_target)
         if not user:
@@ -2902,7 +2901,7 @@ async def delete_store_user_price(id: int, user_id: int, init_data: str):
     from config import BOT_TOKEN, ADMIN_IDS
     if not verify_admin_auth_multi(init_data, user_id):
         raise HTTPException(status_code=403, detail="Unauthorized")
-    from database.models import UserStorePrice
+    from database import UserStorePrice
     async with async_session() as session:
         usp = await session.get(UserStorePrice, id)
         if usp:
@@ -3170,7 +3169,7 @@ async def get_user_prices(user_id: int, init_data: str):
     from config import SELLER_BOT_TOKEN, ADMIN_IDS
     if not verify_admin_auth_multi(init_data, user_id):
         raise HTTPException(status_code=403, detail="Unauthorized")
-    from database.models import UserCountryPrice, User
+    from database import UserCountryPrice, User
     async with async_session() as session:
         result = await session.execute(
             select(UserCountryPrice, User)
@@ -3221,7 +3220,7 @@ async def add_user_price(data: UserPriceCreate):
     from config import SELLER_BOT_TOKEN, ADMIN_IDS
     if not verify_admin_auth_multi(data.init_data, data.user_id):
         raise HTTPException(status_code=403, detail="Unauthorized")
-    from database.models import UserCountryPrice, User
+    from database import UserCountryPrice, User
     async with async_session() as session:
         user = await session.get(User, data.user_id_target)
         if not user:
@@ -3265,7 +3264,7 @@ async def delete_user_price(id: int, user_id: int, init_data: str):
     from config import SELLER_BOT_TOKEN, ADMIN_IDS
     if not verify_admin_auth_multi(init_data, user_id):
         raise HTTPException(status_code=403, detail="Unauthorized")
-    from database.models import UserCountryPrice
+    from database import UserCountryPrice
     async with async_session() as session:
         ucp = await session.get(UserCountryPrice, id)
         if ucp:
@@ -3469,7 +3468,7 @@ async def get_seller_data(user_id: int, init_data: str, lang: str = "en"):
             prices = prices_result.scalars().all()
             
             # Get custom user prices (organized by code and ISO)
-            from database.models import UserCountryPrice
+            from database import UserCountryPrice
             custom_prices_result = await session.execute(select(UserCountryPrice).where(UserCountryPrice.user_id == user_id))
             custom_rows = custom_prices_result.scalars().all()
             

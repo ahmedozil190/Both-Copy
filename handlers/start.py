@@ -4,8 +4,7 @@ from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, WebAppInfo, MenuButtonWebApp, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from sqlalchemy.future import select
 from sqlalchemy import func
-from database.models import User, AppSetting, Transaction, TransactionType
-from database.engine import async_session
+from database import async_session, User, AppSetting, Transaction, TransactionType
 from keyboards import store_keyboard, seller_keyboard
 from config import STORE_URL, WEBAPP_URL
 from services.i18n import get_text
@@ -170,7 +169,7 @@ async def cq_my_referral(call: CallbackQuery, bot: Bot):
         refs_count = (await session.execute(select(func.count(User.id)).where(User.referred_by == user.id))).scalar() or 0
         
         # Fetch dynamic settings
-        from database.models import AppSetting
+        from database import AppSetting
         bonus_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "referral_join_bonus"))).scalar_one_or_none()
         comm_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "referral_commission_percent"))).scalar_one_or_none()
         

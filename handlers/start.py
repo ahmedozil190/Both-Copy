@@ -81,7 +81,9 @@ async def cmd_start(message: Message, bot: Bot, db_user: User = None):
 
     # Always show both buttons regardless of mode
     await message.answer(
-        "👋 Welcome To Our Bots 🤖\n\nClick the button below to open.",
+        "👋 <b>Welcome!</b>\n\n"
+        "Everything is ready.\n\n"
+        "Press the button below to get started.",
         reply_markup=start_keyboard(),
         parse_mode="HTML"
     )

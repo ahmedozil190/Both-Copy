@@ -40,7 +40,7 @@ async def cmd_admin(message: Message, state: FSMContext):
         [InlineKeyboardButton(text="🚀 Open Seller Panel", web_app=WebAppInfo(url=f"{web_url}/admin/sourcing"))]
     ])
     
-    text = "👋 <b>Welcome, Admin!</b>\n\nEverything is ready.\n\nPress the button below to continue."
+    text = "👋 <b>Welcome, Admin!</b>\n\n✅ Everything is ready.\n\n👇 Press the button below to continue."
     await message.answer(text, reply_markup=keyboard, parse_mode="HTML")
 
 @router.callback_query(F.data == "admin_main")

@@ -4279,6 +4279,10 @@
                 // Set referral settings
                 document.getElementById('setting-ref-join-bonus').value = data.referral_join_bonus || 0;
                 document.getElementById('setting-ref-commission').value = data.referral_commission_percent || 0;
+
+                // Set Extra Admin IDs (always update from DB)
+                const extraAdminsEl = document.getElementById('setting-extra-admins');
+                if (extraAdminsEl) extraAdminsEl.value = data.extra_admin_ids || '';
             } catch (e) {
                 console.error("Fetch settings error:", e);
                 showToast("Error", "Could not fetch settings", "error");

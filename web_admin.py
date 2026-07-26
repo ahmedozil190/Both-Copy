@@ -2627,6 +2627,9 @@ async def get_store_settings(user_id: int, init_data: str):
             # Return a placeholder for the secret so the user knows it is set but cannot see it
             masked_secret = "Already Set (Leave empty to keep current)" if api_secret else ""
 
+            extra_admins_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "extra_admin_ids"))).scalar_one_or_none()
+            extra_admin_ids = extra_admins_obj.value if extra_admins_obj else ""
+
             return {
                 "binance_api_key": api_key,
                 "binance_api_secret_masked": masked_secret,
@@ -2634,7 +2637,8 @@ async def get_store_settings(user_id: int, init_data: str):
                 "trx_address": settings.get("TRX_ADDRESS") or "",
                 "usdt_bep20_address": settings.get("USDT_BEP20_ADDRESS") or "",
                 "referral_join_bonus": settings.get("referral_join_bonus") or "0.005",
-                "referral_commission_percent": settings.get("referral_commission_percent") or "1"
+                "referral_commission_percent": settings.get("referral_commission_percent") or "1",
+                "extra_admin_ids": extra_admin_ids
             }
     except Exception as e:
         logger.error(f"Get Store Settings Error: {e}")

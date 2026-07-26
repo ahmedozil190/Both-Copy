@@ -4152,10 +4152,8 @@
                     const updInput = document.getElementById('setting-updates-channel');
                     if (updInput) updInput.value = data.updates_channel;
                 }
-                if (data.extra_admin_ids) {
-                    const extAdmins = document.getElementById('setting-extra-admins');
-                    if (extAdmins) extAdmins.value = data.extra_admin_ids;
-                }
+                const extAdmins = document.getElementById('setting-extra-admins');
+                if (extAdmins) extAdmins.value = data.extra_admin_ids || '';
                 renderUsers(filteredUsers || allUsers);
 
                 // Restore active tab (Like user panel)

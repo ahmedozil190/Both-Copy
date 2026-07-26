@@ -3413,13 +3413,10 @@ async def api_switch_user_mode(data: SwitchModeRequest):
         bot = getattr(app.state, 'bot_buyer', None) or getattr(app.state, 'bot_seller', None)
         if bot:
             try:
-                from config import WEBAPP_URL
-                from aiogram.types import WebAppInfo, MenuButtonWebApp
-                target_url = f"{WEBAPP_URL}/seller?v=3" if new_mode == "seller" else f"{WEBAPP_URL}/store?v=3"
-                button_text = "🚀 Seller" if new_mode == "seller" else "🛒 Store"
+                from aiogram.types import MenuButtonDefault
                 await bot.set_chat_menu_button(
                     chat_id=user.id,
-                    menu_button=MenuButtonWebApp(text=button_text, web_app=WebAppInfo(url=target_url))
+                    menu_button=MenuButtonDefault()
                 )
             except Exception as e:
                 logger.warning(f"Failed to update menu button on switch: {e}")

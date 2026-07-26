@@ -1,7 +1,7 @@
 import logging
 from aiogram import Router, Bot, F
 from aiogram.filters import CommandStart, Command
-from aiogram.types import Message, WebAppInfo, MenuButtonWebApp, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import Message, WebAppInfo, MenuButtonDefault, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from sqlalchemy.future import select
 from sqlalchemy import func
 from database import async_session, User, AppSetting, Transaction, TransactionType
@@ -12,17 +12,15 @@ from services.i18n import get_text
 logger = logging.getLogger(__name__)
 router = Router()
 
-async def update_user_menu_button(bot: Bot, user_id: int, mode: str):
-    """Updates the Telegram Menu Button (web app url) based on mode."""
+async def update_user_menu_button(bot: Bot, user_id: int, mode: str = "store"):
+    """Resets the Telegram Menu Button to default commands button (/start)."""
     try:
-        url = STORE_URL if mode == "store" else f"{WEBAPP_URL}/seller?v=3"
-        btn_text = "🛒 Store" if mode == "store" else "🚀 Seller"
         await bot.set_chat_menu_button(
             chat_id=user_id,
-            menu_button=MenuButtonWebApp(text=btn_text, web_app=WebAppInfo(url=url))
+            menu_button=MenuButtonDefault()
         )
     except Exception as e:
-        logger.error(f"Error updating menu button for {user_id}: {e}")
+        logger.error(f"Error resetting menu button for {user_id}: {e}")
 
 @router.message(CommandStart())
 async def cmd_start(message: Message, bot: Bot, db_user: User = None):

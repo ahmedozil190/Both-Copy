@@ -82,9 +82,7 @@ async def cmd_start(message: Message, bot: Bot, db_user: User = None):
 
     # Always show both buttons regardless of mode
     await message.answer(
-        "🌟 <b>Welcome to Our Numbers Store!</b>\n\n"
-        "Browse and purchase Telegram numbers instantly.\n"
-        "Choose a panel below to get started:",
+        "Welcome to our bots 🛒\n\nClick the button below to open.",
         reply_markup=start_keyboard(),
         parse_mode="HTML"
     )

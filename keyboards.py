@@ -8,8 +8,8 @@ SELLER_WEBAPP_URL = f"{WEBAPP_URL}/seller?v=3"
 def start_keyboard():
     """Two-button keyboard shown on /start — Store + Seller."""
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Open Store 🛒", web_app=WebAppInfo(url=STORE_WEBAPP_URL))],
-        [InlineKeyboardButton(text="Open Seller Panel 🚀", web_app=WebAppInfo(url=SELLER_WEBAPP_URL))]
+        [InlineKeyboardButton(text="🛒 Open Store Panel", web_app=WebAppInfo(url=STORE_WEBAPP_URL))],
+        [InlineKeyboardButton(text="🚀 Open Seller Panel", web_app=WebAppInfo(url=SELLER_WEBAPP_URL))]
     ])
 
 def store_keyboard():

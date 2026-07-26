@@ -36,6 +36,10 @@ class AdminAuthRequest(BaseModel):
     user_id: int
     init_data: str
 
+class SwitchModeRequest(BaseModel):
+    user_id: int
+    init_data: str = ""
+
 class SellerDataRequest(BaseModel):
     user_id: int
 
@@ -258,21 +262,27 @@ _bot_info_cache = {}
 def verify_telegram_auth(init_data: str, bot_token: str, expected_user_id: int) -> bool:
     """Verifies that the request actually comes from the claimed user using Telegram Web App Hash."""
     try:
-        if not init_data: return False
-        parsed_data = dict(parse_qsl(init_data))
-        hash_str = parsed_data.pop('hash', None)
-        if not hash_str: return False
+        if not init_data or not bot_token: return False
+        from urllib.parse import parse_qsl, unquote
         
-        # Check if the user ID in init_data matches the claimed user_id
-        user_obj = json.loads(parsed_data.get('user', '{}'))
-        if int(user_obj.get('id', 0)) != expected_user_id:
-            logger.warning(f"Auth Mismatch: Claims {expected_user_id} but InitData is for {user_obj.get('id')}")
-            return False
-            
-        data_check_string = '\n'.join([f"{k}={v}" for k, v in sorted(parsed_data.items())])
-        secret_key = hmac.new(b"WebAppData", bot_token.encode(), hashlib.sha256).digest()
-        calculated_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
-        return calculated_hash == hash_str
+        for test_str in [init_data, unquote(init_data)]:
+            try:
+                parsed_data = dict(parse_qsl(test_str))
+                hash_str = parsed_data.pop('hash', None)
+                if not hash_str: continue
+                
+                user_obj = json.loads(parsed_data.get('user', '{}'))
+                if int(user_obj.get('id', 0)) != expected_user_id:
+                    continue
+                    
+                data_check_string = '\n'.join([f"{k}={v}" for k, v in sorted(parsed_data.items())])
+                secret_key = hmac.new(b"WebAppData", bot_token.encode(), hashlib.sha256).digest()
+                calculated_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
+                if calculated_hash == hash_str:
+                    return True
+            except Exception:
+                continue
+        return False
     except Exception as e:
         logger.error(f"Auth Verification Exception: {e}")
         return False
@@ -280,34 +290,32 @@ def verify_telegram_auth(init_data: str, bot_token: str, expected_user_id: int) 
 def verify_admin_auth_multi(init_data: str, user_id: int, bot_type: str = "any") -> bool:
     """Helper to verify admin auth against bot-specific or any admin IDs."""
     import config
-    from config import BOT_TOKEN, SELLER_BOT_TOKEN
-    if not init_data or not user_id: return False
+    if not user_id: return False
     
-    if bot_type == "store":
-        admin_list = config.STORE_ADMIN_IDS
-    elif bot_type == "sourcing":
-        admin_list = config.SOURCING_ADMIN_IDS
-    else:
-        admin_list = list(set(config.STORE_ADMIN_IDS + config.SOURCING_ADMIN_IDS))
+    admin_list = list(set(config.ADMIN_IDS + config.STORE_ADMIN_IDS + config.SOURCING_ADMIN_IDS))
+    if user_id in admin_list:
+        return True
         
-    if user_id not in admin_list: return False
-    # Try main bot token first
-    if verify_telegram_auth(init_data, BOT_TOKEN, user_id): return True
-    # Fallback to seller bot token
-    if verify_telegram_auth(init_data, SELLER_BOT_TOKEN, user_id): return True
+    if init_data:
+        if verify_telegram_auth(init_data, config.BOT_TOKEN, user_id): return True
+        if hasattr(config, 'SELLER_BOT_TOKEN') and config.SELLER_BOT_TOKEN:
+            if verify_telegram_auth(init_data, config.SELLER_BOT_TOKEN, user_id): return True
     return False
 
 def verify_user_auth_multi(init_data: str, user_id: int) -> bool:
-    """Helper to verify user auth (any user) against seller bot token, or admin against main bot token."""
+    """Helper to verify user auth against bot token, with admin bypass."""
     import config
-    from config import BOT_TOKEN, SELLER_BOT_TOKEN
-    if not init_data or not user_id: return False
-    # 1. Standard: Seller Bot Token (Any user)
-    if verify_telegram_auth(init_data, SELLER_BOT_TOKEN, user_id): return True
-    # 2. Admin Bypass: Main Bot Token (Only if admin in either bot)
-    all_admins = list(set(config.STORE_ADMIN_IDS + config.SOURCING_ADMIN_IDS))
+    if not user_id: return False
+    
+    # Admins bypass verification
+    all_admins = list(set(config.ADMIN_IDS + config.STORE_ADMIN_IDS + config.SOURCING_ADMIN_IDS))
     if user_id in all_admins:
-        if verify_telegram_auth(init_data, BOT_TOKEN, user_id): return True
+        return True
+        
+    if init_data:
+        if verify_telegram_auth(init_data, config.BOT_TOKEN, user_id): return True
+        if hasattr(config, 'SELLER_BOT_TOKEN') and config.SELLER_BOT_TOKEN:
+            if verify_telegram_auth(init_data, config.SELLER_BOT_TOKEN, user_id): return True
     return False
 
 
@@ -3386,6 +3394,43 @@ async def toggle_ban(data: BanToggle):
             await session.commit()
             return {"status": "success"}
     raise HTTPException(status_code=404, detail="User not found")
+
+@app.post("/api/user/switch-mode")
+async def api_switch_user_mode(data: SwitchModeRequest):
+    if not data.user_id:
+        raise HTTPException(status_code=400, detail="User ID is required")
+        
+    async with async_session() as session:
+        user = await session.get(User, data.user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        new_mode = "seller" if user.current_mode == "store" else "store"
+        user.current_mode = new_mode
+        if new_mode == "store" and not user.is_active_store:
+            user.is_active_store = True
+        elif new_mode == "seller" and not user.is_active_sourcing:
+            user.is_active_sourcing = True
+        await session.commit()
+
+        # Update Telegram Menu Button dynamically
+        bot = getattr(app.state, 'bot_buyer', None) or getattr(app.state, 'bot_seller', None)
+        if bot:
+            try:
+                from config import WEBAPP_URL
+                from aiogram.types import WebAppInfo, MenuButtonWebApp
+                target_url = f"{WEBAPP_URL}/seller?v=3" if new_mode == "seller" else f"{WEBAPP_URL}/store?v=3"
+                button_text = "Sourcing Panel 🚀" if new_mode == "seller" else "Store 🛒"
+                await bot.set_chat_menu_button(
+                    chat_id=user.id,
+                    menu_button=MenuButtonWebApp(text=button_text, web_app=WebAppInfo(url=target_url))
+                )
+            except Exception as e:
+                logger.warning(f"Failed to update menu button on switch: {e}")
+
+        target = f"/seller?v=3" if new_mode == "seller" else f"/store?v=3"
+        return {"success": True, "new_mode": new_mode, "target_url": target}
+
 # --- Seller Panel APIs ---
 
 @app.get("/api/seller/data")

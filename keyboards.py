@@ -7,14 +7,12 @@ SELLER_WEBAPP_URL = f"{WEBAPP_URL}/seller?v=3"
 
 def store_keyboard():
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Open Store 🛒", web_app=WebAppInfo(url=STORE_WEBAPP_URL))],
-        [InlineKeyboardButton(text="🔄 Switch to Seller Mode", callback_data="switch_mode")]
+        [InlineKeyboardButton(text="Open Store 🛒", web_app=WebAppInfo(url=STORE_WEBAPP_URL))]
     ])
 
 def seller_keyboard():
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Open Sourcing Panel 🚀", web_app=WebAppInfo(url=SELLER_WEBAPP_URL))],
-        [InlineKeyboardButton(text="🔄 Switch to Buyer Mode", callback_data="switch_mode")]
+        [InlineKeyboardButton(text="Open Sourcing Panel 🚀", web_app=WebAppInfo(url=SELLER_WEBAPP_URL))]
     ])
 
 def admin_main_keyboard():

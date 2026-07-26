@@ -1118,6 +1118,9 @@
             <div class="nav-item" id="m-lang" onclick="switchNav('lang', this)">
                 <i class="fas fa-language"></i> <span data-i18n="nav_lang">Language</span>
             </div>
+            <div class="nav-item" onclick="switchUserMode()" style="color: var(--accent); font-weight: 700; margin-top: 10px; border: 1px dashed var(--accent-glow);">
+                <i class="fas fa-arrows-rotate"></i> <span>Switch Mode 🔄</span>
+            </div>
         </div>
         <div class="side-footer"></div>
     </div>
@@ -1127,7 +1130,12 @@
             <i class="fas fa-bars"></i>
         </div>
         <div class="page-title" id="view-title">Dashboard</div>
-        <div class="user-avatar" id="userInitial">U</div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <button class="nav-trigger" onclick="switchUserMode()" title="Switch Mode" style="border: 1px solid var(--border);">
+                <i class="fa-solid fa-arrows-rotate" style="color: var(--accent);"></i>
+            </button>
+            <div class="user-avatar" id="userInitial">U</div>
+        </div>
     </header>
 
     <main class="main-content">
@@ -3928,6 +3936,27 @@
             }).catch(() => {
                 showToast("Error", "Failed to copy link.", true);
             });
+        async function switchUserMode() {
+            try {
+                const tg = window.Telegram?.WebApp;
+                const userId = tg?.initDataUnsafe?.user?.id || 0;
+                const initData = tg?.initData || '';
+                
+                const res = await fetch('/api/user/switch-mode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, init_data: initData })
+                });
+                const data = await res.json();
+                if (data.success && data.target_url) {
+                    window.location.href = data.target_url;
+                } else {
+                    window.location.reload();
+                }
+            } catch (e) {
+                console.error("Switch Mode Error:", e);
+                window.location.reload();
+            }
         }
     </script>
 </body>

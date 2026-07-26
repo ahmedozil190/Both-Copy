@@ -83,7 +83,7 @@ async def cmd_start(message: Message, bot: Bot, db_user: User = None):
     await message.answer(
         "👋 <b>Welcome!</b>\n\n"
         "Everything is ready.\n\n"
-        "Press the button below to get started.",
+        "Press the button below to continue.",
         reply_markup=start_keyboard(),
         parse_mode="HTML"
     )

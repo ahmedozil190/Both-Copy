@@ -187,8 +187,8 @@ class UnifiedMiddleware(BaseMiddleware):
                             await event.answer("Maintenance Mode ⚠️", show_alert=True)
                         return
 
-                # 5. Subscription Check
-                if not is_admin:
+                # 5. Subscription Check — /start always bypasses subscription
+                if not is_admin and not is_start_command:
                     ch_bot_type = "store" if current_mode == "store" else "sourcing"
                     sub_channels = (await session.execute(select(SubscriptionChannel).where(SubscriptionChannel.bot_type == ch_bot_type))).scalars().all()
                     if sub_channels:

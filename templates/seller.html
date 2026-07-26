@@ -4520,7 +4520,7 @@
                 const res = await fetch('/api/user/switch-mode', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: userId, init_data: initData })
+                    body: JSON.stringify({ user_id: userId, init_data: initData, force_mode: 'store' })
                 });
                 const data = await res.json();
                 if (data.success && data.target_url) {

@@ -39,6 +39,7 @@ class AdminAuthRequest(BaseModel):
 class SwitchModeRequest(BaseModel):
     user_id: int
     init_data: str = ""
+    force_mode: str | None = None  # explicitly set "store" or "seller"
 
 class SellerDataRequest(BaseModel):
     user_id: int
@@ -3486,7 +3487,9 @@ async def api_switch_user_mode(data: SwitchModeRequest):
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        new_mode = "seller" if user.current_mode == "store" else "store"
+        new_mode = data.force_mode if data.force_mode in ("store", "seller") else (
+            "seller" if user.current_mode == "store" else "store"
+        )
         user.current_mode = new_mode
         if new_mode == "store" and not user.is_active_store:
             user.is_active_store = True

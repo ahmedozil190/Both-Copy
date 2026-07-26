@@ -4280,9 +4280,25 @@
                 document.getElementById('setting-ref-join-bonus').value = data.referral_join_bonus || 0;
                 document.getElementById('setting-ref-commission').value = data.referral_commission_percent || 0;
 
-                // Set Extra Admin IDs (always update from DB)
+                // Set Extra Admin IDs
                 const extraAdminsEl = document.getElementById('setting-extra-admins');
                 if (extraAdminsEl) extraAdminsEl.value = data.extra_admin_ids || '';
+
+                // Set Support & Channel Settings (always refresh from DB like Payments)
+                const supEl = document.getElementById('setting-support-username');
+                if (supEl) supEl.value = data.support_username || '';
+
+                const updEl = document.getElementById('setting-updates-channel');
+                if (updEl) updEl.value = data.updates_channel || '';
+
+                const logChEl = document.getElementById('setting-log-channel');
+                if (logChEl) logChEl.value = data.purchase_log_channel_id || '';
+
+                const depLogEl = document.getElementById('setting-deposit-log-channel');
+                if (depLogEl) depLogEl.value = data.deposit_log_channel_id || '';
+
+                const joinLogEl = document.getElementById('setting-store-join-log-channel');
+                if (joinLogEl) joinLogEl.value = data.store_join_log_channel_id || '';
             } catch (e) {
                 console.error("Fetch settings error:", e);
                 showToast("Error", "Could not fetch settings", "error");

@@ -2048,6 +2048,37 @@ async def store_deposit_verify(req: DepositSubmit):
         logger.error(f"Deposit Verify Error: {e}")
         return {"status": "error", "message": str(e)}
 
+@app.get("/api/admin/sourcing/settings")
+async def get_sourcing_settings(user_id: int, init_data: str):
+    if not verify_admin_auth_multi(init_data, user_id):
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    try:
+        async with async_session() as session:
+            keys = [
+                "sourcing_log_channel_id", "sourcing_join_log_channel_id",
+                "min_withdraw_trx", "min_withdraw_usdt",
+                "fee_withdraw_trx", "fee_withdraw_usdt",
+                "sourcing_extra_admin_ids", "SUPPORT_USERNAME", "UPDATES_CHANNEL"
+            ]
+            settings = {}
+            for k in keys:
+                obj = (await session.execute(select(AppSetting).where(AppSetting.key == k))).scalar_one_or_none()
+                settings[k] = obj.value if obj else ""
+            return {
+                "sourcing_log_channel_id": settings.get("sourcing_log_channel_id", ""),
+                "sourcing_join_log_channel_id": settings.get("sourcing_join_log_channel_id", ""),
+                "min_withdraw_trx": settings.get("min_withdraw_trx", "4.0"),
+                "min_withdraw_usdt": settings.get("min_withdraw_usdt", "10.0"),
+                "fee_withdraw_trx": settings.get("fee_withdraw_trx", "0.2"),
+                "fee_withdraw_usdt": settings.get("fee_withdraw_usdt", "0.2"),
+                "extra_admin_ids": settings.get("sourcing_extra_admin_ids", ""),
+                "support_username": settings.get("SUPPORT_USERNAME", ""),
+                "updates_channel": settings.get("UPDATES_CHANNEL", "")
+            }
+    except Exception as e:
+        logger.error(f"Get Sourcing Settings Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/admin/sourcing/data")
 async def get_sourcing_data(user_id: int, init_data: str):
     from config import SELLER_BOT_TOKEN, ADMIN_IDS
@@ -2630,6 +2661,12 @@ async def get_store_settings(user_id: int, init_data: str):
             extra_admins_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "extra_admin_ids"))).scalar_one_or_none()
             extra_admin_ids = extra_admins_obj.value if extra_admins_obj else ""
 
+            support_username_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "SUPPORT_USERNAME"))).scalar_one_or_none()
+            updates_channel_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "UPDATES_CHANNEL"))).scalar_one_or_none()
+            log_ch_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "purchase_log_channel_id"))).scalar_one_or_none()
+            dep_log_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "deposit_log_channel_id"))).scalar_one_or_none()
+            join_log_obj = (await session.execute(select(AppSetting).where(AppSetting.key == "store_join_log_channel_id"))).scalar_one_or_none()
+
             return {
                 "binance_api_key": api_key,
                 "binance_api_secret_masked": masked_secret,
@@ -2638,7 +2675,12 @@ async def get_store_settings(user_id: int, init_data: str):
                 "usdt_bep20_address": settings.get("USDT_BEP20_ADDRESS") or "",
                 "referral_join_bonus": settings.get("referral_join_bonus") or "0.005",
                 "referral_commission_percent": settings.get("referral_commission_percent") or "1",
-                "extra_admin_ids": extra_admin_ids
+                "extra_admin_ids": extra_admin_ids,
+                "support_username": support_username_obj.value if support_username_obj else "",
+                "updates_channel": updates_channel_obj.value if updates_channel_obj else "",
+                "purchase_log_channel_id": log_ch_obj.value if log_ch_obj else "",
+                "deposit_log_channel_id": dep_log_obj.value if dep_log_obj else "",
+                "store_join_log_channel_id": join_log_obj.value if join_log_obj else ""
             }
     except Exception as e:
         logger.error(f"Get Store Settings Error: {e}")

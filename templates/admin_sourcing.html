@@ -3968,6 +3968,7 @@
             if (id === 'withdrawals') fetchAdminWithdrawals(1, 'pending');
             if (id === 'history') fetchAdminHistory(1);
             if (id === 'user-prices') renderUserPrices();
+            if (id.startsWith('settings')) fetchSourcingSettings();
 
             // 5. Reset scroll BEFORE showing the section
             const scroller = document.getElementById('app-content-scroller');
@@ -5057,7 +5058,48 @@
             }
         }
 
+        async function fetchSourcingSettings() {
+            try {
+                const tgApp = window.Telegram?.WebApp;
+                const userId = tgApp?.initDataUnsafe?.user?.id || 0;
+                const initData = tgApp?.initData || '';
+                const res = await fetch(`/api/admin/sourcing/settings?user_id=${userId}&init_data=${encodeURIComponent(initData)}`);
+                if (!res.ok) throw new Error('Failed to fetch settings');
+                const data = await res.json();
+
+                const logEl = document.getElementById('setting-sourcing-log-channel');
+                if (logEl) logEl.value = data.sourcing_log_channel_id || '';
+
+                const joinLogEl = document.getElementById('setting-sourcing-join-log-channel');
+                if (joinLogEl) joinLogEl.value = data.sourcing_join_log_channel_id || '';
+
+                const minTrxEl = document.getElementById('setting-min-withdraw-trx');
+                if (minTrxEl) minTrxEl.value = data.min_withdraw_trx || '4.0';
+
+                const minUsdtEl = document.getElementById('setting-min-withdraw-usdt');
+                if (minUsdtEl) minUsdtEl.value = data.min_withdraw_usdt || '10.0';
+
+                const feeTrxEl = document.getElementById('setting-fee-withdraw-trx');
+                if (feeTrxEl) feeTrxEl.value = data.fee_withdraw_trx || '0.2';
+
+                const feeUsdtEl = document.getElementById('setting-fee-withdraw-usdt');
+                if (feeUsdtEl) feeUsdtEl.value = data.fee_withdraw_usdt || '0.2';
+
+                const extraAdminsEl = document.getElementById('setting-extra-admins');
+                if (extraAdminsEl) extraAdminsEl.value = data.extra_admin_ids || '';
+
+                const supEl = document.getElementById('setting-support-username');
+                if (supEl) supEl.value = data.support_username || '';
+
+                const updEl = document.getElementById('setting-updates-channel');
+                if (updEl) updEl.value = data.updates_channel || '';
+            } catch (e) {
+                console.error('Fetch sourcing settings error:', e);
+            }
+        }
+
         async function saveSettings() {
+
             const tgApp = window.Telegram?.WebApp;
             const userId = tgApp?.initDataUnsafe?.user?.id || 0;
             const initData = tgApp?.initData || '';

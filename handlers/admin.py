@@ -37,8 +37,7 @@ async def cmd_admin(message: Message, state: FSMContext):
     web_url = os.getenv("WEBAPP_URL", os.getenv("WEB_URL", "http://127.0.0.1:8000")).rstrip("/")
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="Store Panel 🛒", web_app=WebAppInfo(url=f"{web_url}/admin/store"))],
-        [InlineKeyboardButton(text="Sourcing Panel 🚀", web_app=WebAppInfo(url=f"{web_url}/admin/sourcing"))],
-        [InlineKeyboardButton(text="Inline controls ⚙️", callback_data="admin_main")]
+        [InlineKeyboardButton(text="Sourcing Panel 🚀", web_app=WebAppInfo(url=f"{web_url}/admin/sourcing"))]
     ])
     
     text = "Welcome to the Unified Admin Panel 📊\nClick the button below to open."

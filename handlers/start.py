@@ -5,7 +5,7 @@ from aiogram.types import Message, WebAppInfo, MenuButtonWebApp, CallbackQuery, 
 from sqlalchemy.future import select
 from sqlalchemy import func
 from database import async_session, User, AppSetting, Transaction, TransactionType
-from keyboards import store_keyboard, seller_keyboard
+from keyboards import start_keyboard, store_keyboard, seller_keyboard
 from config import STORE_URL, WEBAPP_URL
 from services.i18n import get_text
 
@@ -80,19 +80,12 @@ async def cmd_start(message: Message, bot: Bot, db_user: User = None):
     # Set appropriate WebApp Menu Button
     await update_user_menu_button(bot, user_id, mode)
 
-    # Send Welcome Message based on Mode
-    if mode == "seller":
-        await message.answer(
-            "Welcome to the Sourcing Panel! 🚀\nClick the button below to open.",
-            reply_markup=seller_keyboard(),
-            parse_mode="HTML"
-        )
-    else:
-        await message.answer(
-            "Welcome to the Store! 🛒\nClick the button below to open.",
-            reply_markup=store_keyboard(),
-            parse_mode="HTML"
-        )
+    # Always show both buttons regardless of mode
+    await message.answer(
+        "Welcome! 👋\nChoose where you'd like to go:",
+        reply_markup=start_keyboard(),
+        parse_mode="HTML"
+    )
 
 
 @router.message(Command("switch"))

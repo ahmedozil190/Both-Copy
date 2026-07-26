@@ -3416,7 +3416,7 @@ async def api_switch_user_mode(data: SwitchModeRequest):
                 from config import WEBAPP_URL
                 from aiogram.types import WebAppInfo, MenuButtonWebApp
                 target_url = f"{WEBAPP_URL}/seller?v=3" if new_mode == "seller" else f"{WEBAPP_URL}/store?v=3"
-                button_text = "Sourcing Panel 🚀" if new_mode == "seller" else "Store 🛒"
+                button_text = "Seller 🚀" if new_mode == "seller" else "Store 🛒"
                 await bot.set_chat_menu_button(
                     chat_id=user.id,
                     menu_button=MenuButtonWebApp(text=button_text, web_app=WebAppInfo(url=target_url))

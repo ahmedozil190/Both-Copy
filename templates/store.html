@@ -1092,9 +1092,14 @@
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeNav()"></div>
 
     <div class="sidebar" id="navSidebar">
-        <div class="side-brand">
-            <div class="side-brand-dot"></div>
-            <span class="side-brand-name" id="side-bot-name">Buy Number</span>
+        <div class="side-brand" style="justify-content: space-between; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="side-brand-dot"></div>
+                <span class="side-brand-name">Store</span>
+            </div>
+            <button onclick="switchUserMode()" title="Switch Mode" style="background: rgba(88, 101, 242, 0.12); border: 1px solid var(--accent); color: var(--accent); width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;">
+                <i class="fas fa-arrows-rotate" style="font-size: 0.9rem;"></i>
+            </button>
         </div>
         <div class="side-nav">
             <div class="nav-item" id="m-home" onclick="switchNav('home', this)">
@@ -1117,9 +1122,6 @@
             </div>
             <div class="nav-item" id="m-lang" onclick="switchNav('lang', this)">
                 <i class="fas fa-language"></i> <span data-i18n="nav_lang">Language</span>
-            </div>
-            <div class="nav-item" onclick="switchUserMode()" style="color: var(--accent); font-weight: 700; margin-top: 10px; border: 1px dashed var(--accent-glow);">
-                <i class="fas fa-arrows-rotate"></i> <span>Switch Mode 🔄</span>
             </div>
         </div>
         <div class="side-footer"></div>
@@ -2734,11 +2736,6 @@
                 }
 
                 // 2. Render Data
-                if (data.bot_name) {
-                    const sideName = document.getElementById('side-bot-name');
-                    if (sideName) sideName.innerText = data.bot_name;
-                }
-
                 if (data.support_username) {
                     const msgBtn = document.getElementById('btn-message-support');
                     if (msgBtn) {

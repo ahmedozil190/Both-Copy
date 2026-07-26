@@ -214,7 +214,7 @@ async def main():
     from aiogram.types import BotCommand
     try:
         await bot.set_my_commands([
-            BotCommand(command="start", description="👋 Main Menu / القائمة الرئيسية")
+            BotCommand(command="start", description="Start")
         ])
         logger.info("Bot commands set successfully.")
     except Exception as e:

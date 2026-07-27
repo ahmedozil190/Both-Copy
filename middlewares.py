@@ -161,9 +161,16 @@ class UnifiedMiddleware(BaseMiddleware):
                     return
 
                 # 4. Maintenance Check — /start always bypasses maintenance
-                is_start_command = False
-                if isinstance(event, Message) and event.text and event.text.startswith('/start'):
-                    is_start_command = True
+                # Extract the actual message regardless of event type (Update vs Message)
+                _evt_msg = None
+                if isinstance(event, Message):
+                    _evt_msg = event
+                elif isinstance(event, Update) and event.message:
+                    _evt_msg = event.message
+
+                is_start_command = bool(
+                    _evt_msg and _evt_msg.text and _evt_msg.text.startswith('/start')
+                )
 
                 if not is_admin and not is_start_command:
                     m_key = "STORE_UNDER_MAINTENANCE" if current_mode == "store" else "SOURCING_UNDER_MAINTENANCE"
